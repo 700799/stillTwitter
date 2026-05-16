@@ -55,7 +55,17 @@ export default function TweetCard({ tweet, onPostNow, onSchedule, actionLoading 
           <span className="text-xs text-green-400 font-semibold">✓ Posted</span>
         ) : tweet.is_scheduled ? (
           <>
-            <span className="text-xs text-yellow-400 font-semibold mr-auto">⏰ Scheduled</span>
+            <span className="text-xs text-yellow-400 font-semibold mr-auto">
+              ⏰{' '}
+              {tweet.scheduled_at
+                ? new Date(tweet.scheduled_at).toLocaleString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : 'Scheduled'}
+            </span>
             <button
               onClick={() => onPostNow(tweet)}
               disabled={actionLoading}

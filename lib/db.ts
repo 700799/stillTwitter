@@ -74,7 +74,10 @@ export function getTweets(): Tweet[] {
         CASE WHEN EXISTS (
           SELECT 1 FROM scheduled_posts sp
           WHERE sp.tweet_id = t.id AND sp.status = 'pending'
-        ) THEN 1 ELSE 0 END as is_scheduled
+        ) THEN 1 ELSE 0 END as is_scheduled,
+        (SELECT sp2.scheduled_at FROM scheduled_posts sp2
+         WHERE sp2.tweet_id = t.id AND sp2.status = 'pending'
+         ORDER BY sp2.scheduled_at ASC LIMIT 1) as scheduled_at
        FROM tweets t
        ORDER BY t.id ASC`
     )
@@ -90,7 +93,10 @@ export function getTweetById(id: number): Tweet | undefined {
         CASE WHEN EXISTS (
           SELECT 1 FROM scheduled_posts sp
           WHERE sp.tweet_id = t.id AND sp.status = 'pending'
-        ) THEN 1 ELSE 0 END as is_scheduled
+        ) THEN 1 ELSE 0 END as is_scheduled,
+        (SELECT sp2.scheduled_at FROM scheduled_posts sp2
+         WHERE sp2.tweet_id = t.id AND sp2.status = 'pending'
+         ORDER BY sp2.scheduled_at ASC LIMIT 1) as scheduled_at
        FROM tweets t WHERE t.id = ?`
     )
     .get(id) as RawTweet | undefined;

@@ -7,6 +7,7 @@ export type Tweet = {
   posted_at: string | null;
   twitter_id: string | null;
   is_scheduled: boolean;
+  scheduled_at: string | null;
   created_at: string;
 };
 
