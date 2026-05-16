@@ -7,8 +7,10 @@ node_modules/
 .env.local
 .env*.local
 
-# database — sqlite file is local state, not source
+# database — sqlite file and WAL mode sidecars are local state, not source
 twitter_agent.db
+twitter_agent.db-shm
+twitter_agent.db-wal
 
 # next.js build output
 /.next/
