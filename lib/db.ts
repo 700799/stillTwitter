@@ -132,6 +132,14 @@ export function createScheduledPost(tweetId: number, scheduledAt: string): void 
   ).run(tweetId, scheduledAt);
 }
 
+export function cancelScheduledPosts(tweetId: number): number {
+  const db = getDb();
+  const result = db
+    .prepare("DELETE FROM scheduled_posts WHERE tweet_id = ? AND status = 'pending'")
+    .run(tweetId);
+  return result.changes;
+}
+
 export function getScheduledPosts(): (ScheduledPost & { content: string; category: string })[] {
   const db = getDb();
   return db

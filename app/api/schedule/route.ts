@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTweetById, createScheduledPost } from '@/lib/db';
+import { getTweetById, createScheduledPost, cancelScheduledPosts } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,6 +31,26 @@ export async function POST(req: NextRequest) {
     createScheduledPost(tweetId, scheduledAt);
 
     return NextResponse.json({ success: true });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { tweetId } = await req.json();
+
+    if (!tweetId || typeof tweetId !== 'number') {
+      return NextResponse.json({ error: 'Invalid tweetId' }, { status: 400 });
+    }
+
+    const cancelled = cancelScheduledPosts(tweetId);
+    if (cancelled === 0) {
+      return NextResponse.json({ error: 'No pending scheduled post found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, cancelled });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });

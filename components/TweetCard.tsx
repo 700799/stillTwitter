@@ -4,6 +4,7 @@ type Props = {
   tweet: Tweet;
   onPostNow: (t: Tweet) => void;
   onSchedule: (t: Tweet) => void;
+  onCancel: (t: Tweet) => void;
   actionLoading: boolean;
 };
 
@@ -20,7 +21,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Troubleshooting & Best Practices': 'bg-gray-700 text-gray-100',
 };
 
-export default function TweetCard({ tweet, onPostNow, onSchedule, actionLoading }: Props) {
+export default function TweetCard({ tweet, onPostNow, onSchedule, onCancel, actionLoading }: Props) {
   const charRatio = tweet.char_count / 280;
   const charColor =
     charRatio > 0.93
@@ -72,6 +73,13 @@ export default function TweetCard({ tweet, onPostNow, onSchedule, actionLoading 
               className="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded-lg font-medium transition-colors"
             >
               Post Now
+            </button>
+            <button
+              onClick={() => onCancel(tweet)}
+              disabled={actionLoading}
+              className="text-xs bg-gray-700 hover:bg-red-700 disabled:opacity-50 px-3 py-1.5 rounded-lg font-medium transition-colors"
+            >
+              Cancel
             </button>
           </>
         ) : (

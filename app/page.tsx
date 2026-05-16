@@ -56,6 +56,29 @@ export default function Home() {
     }
   };
 
+  const handleCancel = async (tweet: Tweet) => {
+    if (!confirm('Cancel this scheduled tweet?')) return;
+    setActionLoading(tweet.id);
+    setError('');
+    try {
+      const res = await fetch('/api/schedule', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tweetId: tweet.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Failed to cancel scheduled tweet.');
+      } else {
+        await fetchTweets();
+      }
+    } catch {
+      setError('Network error — could not cancel scheduled tweet.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleSchedule = async (tweet: Tweet, scheduledAt: string) => {
     setActionLoading(tweet.id);
     setError('');
@@ -112,6 +135,7 @@ export default function Home() {
         setStatus={setStatus}
         onPostNow={handlePostNow}
         onSchedule={(tweet) => setScheduleTarget(tweet)}
+        onCancel={handleCancel}
         actionLoading={actionLoading}
       />
 
