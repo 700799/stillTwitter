@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# env — never commit real credentials
+.env.local
+.env*.local
+
+# database — sqlite file and WAL mode sidecars are local state, not source
+twitter_agent.db
+twitter_agent.db-shm
+twitter_agent.db-wal
+
+# next.js build output
+/.next/
+/out/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
