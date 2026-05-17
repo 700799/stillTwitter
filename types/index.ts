@@ -1,8 +1,18 @@
+export type TweetEntry = {
+  subject: string;
+  category: string;
+  hook: string;
+  parts: string[];
+};
+
 export type Tweet = {
   id: number;
-  content: string;
+  subject: string;
   category: string;
-  char_count: number;
+  hook: string;
+  parts: string[];
+  is_thread: boolean;
+  part_count: number;
   posted: boolean;
   posted_at: string | null;
   twitter_id: string | null;
@@ -11,16 +21,28 @@ export type Tweet = {
   created_at: string;
 };
 
+export type Account = {
+  id: string;
+  name: string;
+  appKey: string;
+  appSecret: string;
+  accessToken: string;
+  accessSecret: string;
+};
+
 export type ScheduledPost = {
   id: number;
   tweet_id: number;
+  account_id: string;
   scheduled_at: string;
   status: 'pending' | 'posted' | 'failed';
   twitter_id: string | null;
   error: string | null;
   created_at: string;
-  content: string;
+  hook: string;
+  subject: string;
   category: string;
+  parts: string[];
 };
 
 export type Stats = {
@@ -28,4 +50,10 @@ export type Stats = {
   posted: number;
   pending: number;
   scheduled: number;
+};
+
+export type SubjectStat = {
+  name: string;
+  total: number;
+  posted: number;
 };

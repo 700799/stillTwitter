@@ -1,25 +1,36 @@
 import { TwitterApi } from 'twitter-api-v2';
+import { getAccount } from './accounts';
 
-function getClient(): TwitterApi {
-  const { TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET } =
-    process.env;
-
-  if (!TWITTER_API_KEY || !TWITTER_API_SECRET || !TWITTER_ACCESS_TOKEN || !TWITTER_ACCESS_SECRET) {
+export async function postTweet(parts: string[], accountId: string): Promise<string> {
+  const account = getAccount(accountId);
+  if (!account) {
     throw new Error(
-      'Twitter credentials not configured. Copy .env.local.example to .env.local and fill in your API keys.'
+      `Twitter account "${accountId}" not found. Add it via the Accounts panel.`
     );
   }
 
-  return new TwitterApi({
-    appKey: TWITTER_API_KEY,
-    appSecret: TWITTER_API_SECRET,
-    accessToken: TWITTER_ACCESS_TOKEN,
-    accessSecret: TWITTER_ACCESS_SECRET,
+  const client = new TwitterApi({
+    appKey: account.appKey,
+    appSecret: account.appSecret,
+    accessToken: account.accessToken,
+    accessSecret: account.accessSecret,
   });
-}
 
-export async function postTweet(content: string): Promise<string> {
-  const client = getClient();
-  const result = await client.v2.tweet(content);
-  return result.data.id;
+  if (parts.length === 1) {
+    const result = await client.v2.tweet(parts[0]);
+    return result.data.id;
+  }
+
+  // Post as a thread — each part replies to the previous
+  let lastId: string | undefined;
+  let firstId: string | undefined;
+  for (const part of parts) {
+    const result = await client.v2.tweet(
+      part,
+      lastId ? { reply: { in_reply_to_tweet_id: lastId } } : undefined
+    );
+    if (!firstId) firstId = result.data.id;
+    lastId = result.data.id;
+  }
+  return firstId!;
 }
