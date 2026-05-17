@@ -8,50 +8,51 @@ type Props = {
   actionLoading: boolean;
 };
 
-const CATEGORY_COLORS: Record<string, string> = {
-  'Getting Started': 'bg-blue-800 text-blue-100',
-  'Slash Commands': 'bg-purple-800 text-purple-100',
-  'Tool Use & Permissions': 'bg-orange-800 text-orange-100',
-  'Hooks & Automation': 'bg-pink-800 text-pink-100',
-  'MCP Servers': 'bg-teal-800 text-teal-100',
-  'IDE Integration': 'bg-indigo-800 text-indigo-100',
-  'Multi-Agent & Subagents': 'bg-red-800 text-red-100',
-  'Productivity Tips': 'bg-green-800 text-green-100',
-  'Advanced Features': 'bg-yellow-800 text-yellow-100',
-  'Troubleshooting & Best Practices': 'bg-gray-700 text-gray-100',
+const SUBJECT_COLORS: Record<string, string> = {
+  'Claude Code Tips': 'bg-blue-800 text-blue-100',
+  'Financial Advice': 'bg-green-800 text-green-100',
+  'Coaching Stories': 'bg-orange-800 text-orange-100',
+  'Science & Math': 'bg-purple-800 text-purple-100',
+  'Paradoxes & Dilemmas': 'bg-red-800 text-red-100',
+  'Time Management & Study': 'bg-teal-800 text-teal-100',
+  'Negotiation': 'bg-yellow-800 text-yellow-100',
+  'Business Books': 'bg-pink-800 text-pink-100',
 };
 
 export default function TweetCard({ tweet, onPostNow, onSchedule, onCancel, actionLoading }: Props) {
-  const charRatio = tweet.char_count / 280;
-  const charColor =
-    charRatio > 0.93
-      ? 'text-red-400'
-      : charRatio > 0.86
-        ? 'text-yellow-400'
-        : 'text-gray-500';
-
   const borderColor = tweet.posted
     ? 'border-green-700'
     : tweet.is_scheduled
       ? 'border-yellow-600'
       : 'border-gray-700';
 
+  const preview = tweet.parts[0].length > 120
+    ? tweet.parts[0].slice(0, 117) + '…'
+    : tweet.parts[0];
+
   return (
-    <div className={`bg-gray-900 border ${borderColor} rounded-xl p-4 flex flex-col gap-3 hover:border-gray-500 transition-colors`}>
-      <div className="flex items-start justify-between gap-2">
-        <span
-          className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${CATEGORY_COLORS[tweet.category] ?? 'bg-gray-700 text-gray-100'}`}
-        >
-          {tweet.category}
+    <div className={`bg-gray-900 border ${borderColor} rounded-xl p-4 flex flex-col gap-2 hover:border-gray-500 transition-colors`}>
+      {/* Badges row */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${SUBJECT_COLORS[tweet.subject] ?? 'bg-gray-700 text-gray-100'}`}>
+          {tweet.subject}
         </span>
-        <span className={`text-xs tabular-nums shrink-0 ${charColor}`}>
-          {tweet.char_count}/280
-        </span>
+        <span className="text-xs text-gray-500">{tweet.category}</span>
+        {tweet.is_thread && (
+          <span className="ml-auto text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full">
+            🧵 {tweet.part_count}-part thread
+          </span>
+        )}
       </div>
 
-      <p className="text-gray-100 text-sm leading-relaxed flex-1">{tweet.content}</p>
+      {/* Hook title */}
+      <h3 className="text-white font-semibold text-sm leading-snug">{tweet.hook}</h3>
 
-      <div className="flex items-center justify-end gap-2 pt-1">
+      {/* First part preview */}
+      <p className="text-gray-400 text-xs leading-relaxed flex-1">{preview}</p>
+
+      {/* Footer */}
+      <div className="flex items-center justify-end gap-2 pt-1 border-t border-gray-800">
         {tweet.posted ? (
           <span className="text-xs text-green-400 font-semibold">✓ Posted</span>
         ) : tweet.is_scheduled ? (

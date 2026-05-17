@@ -12,6 +12,9 @@ twitter_agent.db
 twitter_agent.db-shm
 twitter_agent.db-wal
 
+# accounts — contains Twitter API credentials, never commit
+data/accounts.json
+
 # next.js build output
 /.next/
 /out/

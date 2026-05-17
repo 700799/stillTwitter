@@ -38,12 +38,15 @@ export default function ScheduleModal({ tweet, onConfirm, onClose }: Props) {
       <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-lg w-full shadow-2xl">
         <h2 className="text-xl font-bold mb-1">Schedule Tweet</h2>
         <p className="text-gray-400 text-xs mb-4">
-          Category: <span className="text-gray-300">{tweet.category}</span>
+          {tweet.subject} · {tweet.category}
         </p>
 
         <div className="bg-gray-800 rounded-lg p-3 mb-5">
-          <p className="text-gray-100 text-sm leading-relaxed line-clamp-4">{tweet.content}</p>
-          <p className="text-gray-500 text-xs mt-2">{tweet.char_count}/280 characters</p>
+          <p className="text-white text-sm font-semibold mb-1">{tweet.hook}</p>
+          <p className="text-gray-400 text-xs leading-relaxed line-clamp-3">{tweet.parts[0]}</p>
+          {tweet.is_thread && (
+            <p className="text-gray-500 text-xs mt-2">🧵 {tweet.part_count}-part thread</p>
+          )}
         </div>
 
         <div className="mb-6">
