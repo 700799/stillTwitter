@@ -6,6 +6,7 @@ import TweetGrid from '@/components/TweetGrid';
 import ScheduleModal from '@/components/ScheduleModal';
 import AccountsModal from '@/components/AccountsModal';
 import UploadModal from '@/components/UploadModal';
+import ComposeModal from '@/components/ComposeModal';
 import type { Tweet, Stats, SubjectStat } from '@/types';
 
 type AccountMeta = { id: string; name: string };
@@ -24,6 +25,7 @@ export default function Home() {
   const [scheduleTarget, setScheduleTarget] = useState<Tweet | null>(null);
   const [showAccounts, setShowAccounts] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [error, setError] = useState('');
@@ -170,6 +172,12 @@ export default function Home() {
           >
             Upload JSON
           </button>
+          <button
+            onClick={() => setShowCompose(true)}
+            className="text-sm bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded-lg font-medium transition-colors"
+          >
+            + Compose
+          </button>
         </div>
       </div>
 
@@ -216,6 +224,14 @@ export default function Home() {
       {showUpload && (
         <UploadModal
           onClose={() => setShowUpload(false)}
+          onSuccess={fetchTweets}
+        />
+      )}
+      {showCompose && (
+        <ComposeModal
+          accounts={accounts}
+          selectedAccountId={selectedAccount}
+          onClose={() => setShowCompose(false)}
           onSuccess={fetchTweets}
         />
       )}
