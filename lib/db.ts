@@ -188,6 +188,21 @@ export function getScheduledPosts(): ScheduledPost[] {
   return rows.map((r) => ({ ...r, parts: JSON.parse(r.parts) as string[] }));
 }
 
+export function insertTweet(entry: typeof allTweetData[number]): number {
+  const db = getDb();
+  const result = db
+    .prepare('INSERT INTO tweets (subject, category, hook, parts, is_thread, part_count) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(
+      entry.subject,
+      entry.category,
+      entry.hook,
+      JSON.stringify(entry.parts),
+      entry.parts.length > 1 ? 1 : 0,
+      entry.parts.length
+    );
+  return result.lastInsertRowid as number;
+}
+
 export function insertTweets(entries: typeof allTweetData): number {
   const db = getDb();
   const insert = db.prepare(
