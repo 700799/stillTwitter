@@ -7,7 +7,8 @@ import ScheduleModal from '@/components/ScheduleModal';
 import AccountsModal from '@/components/AccountsModal';
 import UploadModal from '@/components/UploadModal';
 import ComposeModal from '@/components/ComposeModal';
-import type { Tweet, Stats, SubjectStat } from '@/types';
+import ScheduledQueue from '@/components/ScheduledQueue';
+import type { Tweet, Stats, SubjectStat, ScheduledPost } from '@/types';
 
 type AccountMeta = { id: string; name: string };
 
@@ -26,6 +27,8 @@ export default function Home() {
   const [showAccounts, setShowAccounts] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
+  const [queuePosts, setQueuePosts] = useState<ScheduledPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [error, setError] = useState('');
@@ -35,7 +38,6 @@ export default function Home() {
     const data = await res.json();
     const list: AccountMeta[] = data.accounts ?? [];
     setAccounts(list);
-    // Restore selection from localStorage, default to first account
     const saved = typeof window !== 'undefined' ? localStorage.getItem(ACCOUNT_KEY) : null;
     const valid = saved && list.find((a) => a.id === saved) ? saved : list[0]?.id ?? '';
     setSelectedAccount(valid);
@@ -57,8 +59,18 @@ export default function Home() {
     }
   }, [subject]);
 
+  const fetchQueue = useCallback(async () => {
+    try {
+      const res = await fetch('/api/scheduled');
+      const data = await res.json();
+      setQueuePosts(data.posts ?? []);
+    } catch {
+      // non-critical
+    }
+  }, []);
+
   useEffect(() => { fetchAccounts(); }, [fetchAccounts]);
-  useEffect(() => { fetchTweets(); }, [fetchTweets]);
+  useEffect(() => { fetchTweets(); fetchQueue(); }, [fetchTweets, fetchQueue]);
 
   const saveAccount = (id: string) => {
     setSelectedAccount(id);
@@ -106,7 +118,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok) setError(data.error ?? 'Failed to cancel.');
-      else await fetchTweets();
+      else await Promise.all([fetchTweets(), fetchQueue()]);
     } catch {
       setError('Network error — could not cancel tweet.');
     } finally {
@@ -127,11 +139,57 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok) setError(data.error ?? 'Failed to schedule tweet.');
-      else { setScheduleTarget(null); await fetchTweets(); }
+      else { setScheduleTarget(null); await Promise.all([fetchTweets(), fetchQueue()]); }
     } catch {
       setError('Network error — could not schedule tweet.');
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleQueueCancel = async (scheduledId: number) => {
+    if (!confirm('Cancel this scheduled post?')) return;
+    setError('');
+    try {
+      const res = await fetch(`/api/scheduled/${scheduledId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) setError(data.error ?? 'Failed to cancel.');
+      else await Promise.all([fetchTweets(), fetchQueue()]);
+    } catch {
+      setError('Network error — could not cancel.');
+    }
+  };
+
+  const handleQueueRetry = async (scheduledId: number) => {
+    setError('');
+    try {
+      const res = await fetch('/api/scheduled/retry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledId }),
+      });
+      const data = await res.json();
+      if (!res.ok) setError(data.error ?? 'Failed to retry.');
+      else await Promise.all([fetchTweets(), fetchQueue()]);
+    } catch {
+      setError('Network error — could not retry.');
+    }
+  };
+
+  const handleQueueReschedule = async (post: ScheduledPost, newScheduledAt: string) => {
+    setError('');
+    try {
+      await fetch(`/api/scheduled/${post.id}`, { method: 'DELETE' });
+      const res = await fetch('/api/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tweetId: post.tweet_id, accountId: post.account_id, scheduledAt: newScheduledAt }),
+      });
+      const data = await res.json();
+      if (!res.ok) setError(data.error ?? 'Failed to reschedule.');
+      else await Promise.all([fetchTweets(), fetchQueue()]);
+    } catch {
+      setError('Network error — could not reschedule.');
     }
   };
 
@@ -146,7 +204,6 @@ export default function Home() {
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Account selector */}
           {accounts.length > 0 ? (
             <select
               value={selectedAccount}
@@ -189,7 +246,18 @@ export default function Home() {
         </div>
       )}
 
-      <StatsBar stats={stats} />
+      <StatsBar stats={stats} onScheduledClick={() => setShowQueue((v) => !v)} />
+
+      {showQueue && (
+        <ScheduledQueue
+          posts={queuePosts}
+          accounts={accounts}
+          onCancel={handleQueueCancel}
+          onRetry={handleQueueRetry}
+          onReschedule={handleQueueReschedule}
+          onClose={() => setShowQueue(false)}
+        />
+      )}
 
       <TweetGrid
         tweets={tweets}

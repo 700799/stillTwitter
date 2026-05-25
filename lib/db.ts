@@ -182,10 +182,22 @@ export function getScheduledPosts(): ScheduledPost[] {
     .prepare(
       `SELECT sp.*, t.hook, t.subject, t.category, t.parts
        FROM scheduled_posts sp JOIN tweets t ON t.id = sp.tweet_id
+       WHERE sp.status IN ('pending', 'failed')
        ORDER BY sp.scheduled_at ASC`
     )
     .all() as (Omit<ScheduledPost, 'parts'> & { parts: string })[];
   return rows.map((r) => ({ ...r, parts: JSON.parse(r.parts) as string[] }));
+}
+
+export function retryScheduledPost(scheduledId: number): void {
+  const soon = new Date(Date.now() + 60_000).toISOString();
+  getDb()
+    .prepare("UPDATE scheduled_posts SET status='pending', error=NULL, scheduled_at=? WHERE id=?")
+    .run(soon, scheduledId);
+}
+
+export function deleteScheduledPost(scheduledId: number): void {
+  getDb().prepare('DELETE FROM scheduled_posts WHERE id=?').run(scheduledId);
 }
 
 export function insertTweet(entry: typeof allTweetData[number]): number {
