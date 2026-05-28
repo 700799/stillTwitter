@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import { allTweetData } from '../data';
-import type { Tweet, ScheduledPost, Stats, SubjectStat } from '../types';
+import type { Tweet, ScheduledPost, Stats, SubjectStat, NewsSource, DigestArticle, NewsDigest } from '../types';
 
 const DB_PATH = path.join(process.cwd(), 'twitter_agent.db');
 
@@ -63,6 +63,23 @@ function initDb(db: Database.Database): void {
       error TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS news_sources (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      url TEXT NOT NULL,
+      category TEXT NOT NULL DEFAULT 'General',
+      active INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS news_digests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL UNIQUE,
+      articles TEXT NOT NULL,
+      email_sent INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `);
 
   const count = (db.prepare('SELECT COUNT(*) as c FROM tweets').get() as { c: number }).c;
@@ -83,6 +100,15 @@ function initDb(db: Database.Database): void {
       }
     });
     insertMany(allTweetData);
+  }
+
+  const sourceCount = (db.prepare('SELECT COUNT(*) as c FROM news_sources').get() as { c: number }).c;
+  if (sourceCount === 0) {
+    const ins = db.prepare('INSERT INTO news_sources (name, url, category, active) VALUES (?, ?, ?, ?)');
+    const seedSources = db.transaction(() => {
+      for (const s of SEED_SOURCES) ins.run(s.name, s.url, s.category, s.active);
+    });
+    seedSources();
   }
 }
 
@@ -199,6 +225,93 @@ export function retryScheduledPost(scheduledId: number): void {
 export function deleteScheduledPost(scheduledId: number): void {
   getDb().prepare('DELETE FROM scheduled_posts WHERE id=?').run(scheduledId);
 }
+
+// ── News Sources ────────────────────────────────────────────────────────────
+
+const SEED_SOURCES: { name: string; url: string; category: string; active: number }[] = [
+  { name: 'NPR News', url: 'https://feeds.npr.org/1001/rss.xml', category: 'National', active: 1 },
+  { name: 'AP Top News', url: 'https://feeds.apnews.com/rss/topnews', category: 'National', active: 1 },
+  { name: 'New York – Google News', url: 'https://news.google.com/rss/search?q=%22New+York%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Northeast', active: 0 },
+  { name: 'Boston – Google News', url: 'https://news.google.com/rss/search?q=%22Boston%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Northeast', active: 0 },
+  { name: 'Philadelphia – Google News', url: 'https://news.google.com/rss/search?q=%22Philadelphia%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Northeast', active: 0 },
+  { name: 'Miami – Google News', url: 'https://news.google.com/rss/search?q=%22Miami%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Southeast', active: 0 },
+  { name: 'Atlanta – Google News', url: 'https://news.google.com/rss/search?q=%22Atlanta%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Southeast', active: 0 },
+  { name: 'Charlotte – Google News', url: 'https://news.google.com/rss/search?q=%22Charlotte%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Southeast', active: 0 },
+  { name: 'Nashville – Google News', url: 'https://news.google.com/rss/search?q=%22Nashville%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Southeast', active: 0 },
+  { name: 'Chicago – Google News', url: 'https://news.google.com/rss/search?q=%22Chicago%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Midwest', active: 0 },
+  { name: 'Detroit – Google News', url: 'https://news.google.com/rss/search?q=%22Detroit%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Midwest', active: 0 },
+  { name: 'Minneapolis – Google News', url: 'https://news.google.com/rss/search?q=%22Minneapolis%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Midwest', active: 0 },
+  { name: 'Columbus OH – Google News', url: 'https://news.google.com/rss/search?q=%22Columbus%22+Ohio+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Midwest', active: 0 },
+  { name: 'Houston – Google News', url: 'https://news.google.com/rss/search?q=%22Houston%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Southwest', active: 0 },
+  { name: 'Dallas – Google News', url: 'https://news.google.com/rss/search?q=%22Dallas%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Southwest', active: 0 },
+  { name: 'San Antonio – Google News', url: 'https://news.google.com/rss/search?q=%22San+Antonio%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Southwest', active: 0 },
+  { name: 'Austin – Google News', url: 'https://news.google.com/rss/search?q=%22Austin%22+Texas+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Southwest', active: 0 },
+  { name: 'Phoenix – Google News', url: 'https://news.google.com/rss/search?q=%22Phoenix%22+Arizona+local+news&hl=en-US&gl=US&ceid=US:en', category: 'Southwest', active: 0 },
+  { name: 'Los Angeles – Google News', url: 'https://news.google.com/rss/search?q=%22Los+Angeles%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'West', active: 0 },
+  { name: 'San Francisco – Google News', url: 'https://news.google.com/rss/search?q=%22San+Francisco%22+Bay+Area+news&hl=en-US&gl=US&ceid=US:en', category: 'West', active: 0 },
+  { name: 'Seattle – Google News', url: 'https://news.google.com/rss/search?q=%22Seattle%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'West', active: 0 },
+  { name: 'San Diego – Google News', url: 'https://news.google.com/rss/search?q=%22San+Diego%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'West', active: 0 },
+  { name: 'Denver – Google News', url: 'https://news.google.com/rss/search?q=%22Denver%22+Colorado+local+news&hl=en-US&gl=US&ceid=US:en', category: 'West', active: 0 },
+  { name: 'Portland OR – Google News', url: 'https://news.google.com/rss/search?q=%22Portland%22+Oregon+local+news&hl=en-US&gl=US&ceid=US:en', category: 'West', active: 0 },
+  { name: 'Las Vegas – Google News', url: 'https://news.google.com/rss/search?q=%22Las+Vegas%22+local+news&hl=en-US&gl=US&ceid=US:en', category: 'West', active: 0 },
+];
+
+type RawNewsSource = Omit<NewsSource, 'active'> & { active: number };
+
+export function getAllSources(): NewsSource[] {
+  const rows = getDb().prepare('SELECT * FROM news_sources ORDER BY category ASC, name ASC').all() as RawNewsSource[];
+  return rows.map((r) => ({ ...r, active: r.active === 1 }));
+}
+
+export function getActiveSources(): NewsSource[] {
+  const rows = getDb().prepare('SELECT * FROM news_sources WHERE active = 1 ORDER BY name ASC').all() as RawNewsSource[];
+  return rows.map((r) => ({ ...r, active: true }));
+}
+
+export function toggleSourceActive(id: number): void {
+  getDb().prepare('UPDATE news_sources SET active = CASE WHEN active = 1 THEN 0 ELSE 1 END WHERE id = ?').run(id);
+}
+
+export function deleteSource(id: number): void {
+  getDb().prepare('DELETE FROM news_sources WHERE id = ?').run(id);
+}
+
+export function addSource(name: string, url: string, category: string): number {
+  const result = getDb()
+    .prepare('INSERT INTO news_sources (name, url, category, active) VALUES (?, ?, ?, 1)')
+    .run(name, url, category);
+  return result.lastInsertRowid as number;
+}
+
+// ── News Digests ─────────────────────────────────────────────────────────────
+
+type RawDigest = Omit<NewsDigest, 'articles' | 'email_sent'> & { articles: string; email_sent: number };
+
+function hydrateDigest(raw: RawDigest): NewsDigest {
+  return { ...raw, articles: JSON.parse(raw.articles) as DigestArticle[], email_sent: raw.email_sent === 1 };
+}
+
+export function saveDigest(date: string, articles: DigestArticle[]): void {
+  getDb()
+    .prepare('INSERT OR REPLACE INTO news_digests (date, articles) VALUES (?, ?)')
+    .run(date, JSON.stringify(articles));
+}
+
+export function getDigestByDate(date: string): NewsDigest | null {
+  const row = getDb().prepare('SELECT * FROM news_digests WHERE date = ?').get(date) as RawDigest | undefined;
+  return row ? hydrateDigest(row) : null;
+}
+
+export function getLatestDigest(): NewsDigest | null {
+  const row = getDb().prepare('SELECT * FROM news_digests ORDER BY date DESC LIMIT 1').get() as RawDigest | undefined;
+  return row ? hydrateDigest(row) : null;
+}
+
+export function markDigestEmailSent(date: string): void {
+  getDb().prepare('UPDATE news_digests SET email_sent = 1 WHERE date = ?').run(date);
+}
+
+// ── Tweet helpers ─────────────────────────────────────────────────────────────
 
 export function insertTweet(entry: typeof allTweetData[number]): number {
   const db = getDb();

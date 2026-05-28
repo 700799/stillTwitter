@@ -101,6 +101,17 @@ app.prepare().then(() => {
     }
   });
 
+  // Daily news digest at 7 AM — triggers the Next.js API route so TypeScript runs
+  cron.schedule('0 7 * * *', async () => {
+    const http = require('http');
+    const req = http.request(
+      { hostname: 'localhost', port, path: '/api/admin/digest', method: 'POST' },
+      (res) => { res.resume(); console.log(`[digest] Triggered — status ${res.statusCode}`); }
+    );
+    req.on('error', (e) => console.error('[digest] Cron trigger failed:', e));
+    req.end();
+  });
+
   createServer(async (req, res) => {
     const parsedUrl = parse(req.url, true);
     await handle(req, res, parsedUrl);

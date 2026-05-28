@@ -8,7 +8,8 @@ import AccountsModal from '@/components/AccountsModal';
 import UploadModal from '@/components/UploadModal';
 import ComposeModal from '@/components/ComposeModal';
 import ScheduledQueue from '@/components/ScheduledQueue';
-import type { Tweet, Stats, SubjectStat, ScheduledPost } from '@/types';
+import DigestPanel from '@/components/DigestPanel';
+import type { Tweet, Stats, SubjectStat, ScheduledPost, NewsDigest, DigestArticle } from '@/types';
 
 type AccountMeta = { id: string; name: string };
 
@@ -29,6 +30,9 @@ export default function Home() {
   const [showCompose, setShowCompose] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
   const [queuePosts, setQueuePosts] = useState<ScheduledPost[]>([]);
+  const [digest, setDigest] = useState<NewsDigest | null>(null);
+  const [showDigest, setShowDigest] = useState(false);
+  const [composeInitial, setComposeInitial] = useState<{ hook: string; content: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [error, setError] = useState('');
@@ -69,8 +73,18 @@ export default function Home() {
     }
   }, []);
 
+  const fetchDigest = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/digest');
+      const data = await res.json();
+      setDigest(data.digest ?? null);
+    } catch {
+      // non-critical
+    }
+  }, []);
+
   useEffect(() => { fetchAccounts(); }, [fetchAccounts]);
-  useEffect(() => { fetchTweets(); fetchQueue(); }, [fetchTweets, fetchQueue]);
+  useEffect(() => { fetchTweets(); fetchQueue(); fetchDigest(); }, [fetchTweets, fetchQueue, fetchDigest]);
 
   const saveAccount = (id: string) => {
     setSelectedAccount(id);
@@ -229,6 +243,14 @@ export default function Home() {
           >
             Upload JSON
           </button>
+          {digest && (
+            <button
+              onClick={() => setShowDigest((v) => !v)}
+              className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg font-medium transition-colors"
+            >
+              Digest ({digest.articles.length})
+            </button>
+          )}
           <button
             onClick={() => setShowCompose(true)}
             className="text-sm bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded-lg font-medium transition-colors"
@@ -247,6 +269,17 @@ export default function Home() {
       )}
 
       <StatsBar stats={stats} onScheduledClick={() => setShowQueue((v) => !v)} />
+
+      {showDigest && digest && (
+        <DigestPanel
+          digest={digest}
+          onClose={() => setShowDigest(false)}
+          onTweetAbout={(article: DigestArticle) => {
+            setComposeInitial({ hook: article.title, content: article.link });
+            setShowCompose(true);
+          }}
+        />
+      )}
 
       {showQueue && (
         <ScheduledQueue
@@ -299,7 +332,9 @@ export default function Home() {
         <ComposeModal
           accounts={accounts}
           selectedAccountId={selectedAccount}
-          onClose={() => setShowCompose(false)}
+          initialHook={composeInitial?.hook}
+          initialContent={composeInitial?.content}
+          onClose={() => { setShowCompose(false); setComposeInitial(null); }}
           onSuccess={fetchTweets}
         />
       )}

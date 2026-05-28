@@ -57,3 +57,28 @@ export type SubjectStat = {
   total: number;
   posted: number;
 };
+
+export type NewsSource = {
+  id: number;
+  name: string;
+  url: string;
+  category: string;
+  active: boolean;
+  created_at: string;
+};
+
+export type DigestArticle = {
+  title: string;
+  link: string;
+  description: string | null;
+  source: string;
+  publishedAt: string;
+};
+
+export type NewsDigest = {
+  id: number;
+  date: string;
+  articles: DigestArticle[];
+  email_sent: boolean;
+  created_at: string;
+};
