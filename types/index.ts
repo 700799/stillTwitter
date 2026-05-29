@@ -82,3 +82,12 @@ export type NewsDigest = {
   email_sent: boolean;
   created_at: string;
 };
+
+export type OptimizeResult = {
+  score: number;
+  score_reason: string;
+  rewritten_hook: string;
+  hashtags: string[];
+  best_time: string;
+  tip: string;
+};

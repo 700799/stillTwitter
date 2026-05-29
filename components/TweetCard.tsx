@@ -5,6 +5,7 @@ type Props = {
   onPostNow: (t: Tweet) => void;
   onSchedule: (t: Tweet) => void;
   onCancel: (t: Tweet) => void;
+  onOptimize: (t: Tweet) => void;
   actionLoading: boolean;
 };
 
@@ -19,7 +20,7 @@ const SUBJECT_COLORS: Record<string, string> = {
   'Business Books': 'bg-pink-800 text-pink-100',
 };
 
-export default function TweetCard({ tweet, onPostNow, onSchedule, onCancel, actionLoading }: Props) {
+export default function TweetCard({ tweet, onPostNow, onSchedule, onCancel, onOptimize, actionLoading }: Props) {
   const borderColor = tweet.posted
     ? 'border-green-700'
     : tweet.is_scheduled
@@ -52,7 +53,7 @@ export default function TweetCard({ tweet, onPostNow, onSchedule, onCancel, acti
       <p className="text-gray-400 text-xs leading-relaxed flex-1">{preview}</p>
 
       {/* Footer */}
-      <div className="flex items-center justify-end gap-2 pt-1 border-t border-gray-800">
+      <div className="flex items-center justify-end gap-2 pt-1 border-t border-gray-800 flex-wrap">
         {tweet.posted ? (
           <span className="text-xs text-green-400 font-semibold">✓ Posted</span>
         ) : tweet.is_scheduled ? (
@@ -68,6 +69,13 @@ export default function TweetCard({ tweet, onPostNow, onSchedule, onCancel, acti
                   })
                 : 'Scheduled'}
             </span>
+            <button
+              onClick={() => onOptimize(tweet)}
+              disabled={actionLoading}
+              className="text-xs bg-purple-800 hover:bg-purple-700 disabled:opacity-50 px-2.5 py-1.5 rounded-lg font-medium transition-colors"
+            >
+              ✦
+            </button>
             <button
               onClick={() => onPostNow(tweet)}
               disabled={actionLoading}
@@ -85,6 +93,14 @@ export default function TweetCard({ tweet, onPostNow, onSchedule, onCancel, acti
           </>
         ) : (
           <>
+            <button
+              onClick={() => onOptimize(tweet)}
+              disabled={actionLoading}
+              className="text-xs bg-purple-800 hover:bg-purple-700 disabled:opacity-50 px-2.5 py-1.5 rounded-lg font-medium transition-colors"
+              title="AI Optimize"
+            >
+              ✦
+            </button>
             <button
               onClick={() => onPostNow(tweet)}
               disabled={actionLoading}

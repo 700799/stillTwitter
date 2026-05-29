@@ -9,6 +9,7 @@ import UploadModal from '@/components/UploadModal';
 import ComposeModal from '@/components/ComposeModal';
 import ScheduledQueue from '@/components/ScheduledQueue';
 import DigestPanel from '@/components/DigestPanel';
+import OptimizeModal from '@/components/OptimizeModal';
 import type { Tweet, Stats, SubjectStat, ScheduledPost, NewsDigest, DigestArticle } from '@/types';
 
 type AccountMeta = { id: string; name: string };
@@ -33,6 +34,7 @@ export default function Home() {
   const [digest, setDigest] = useState<NewsDigest | null>(null);
   const [showDigest, setShowDigest] = useState(false);
   const [composeInitial, setComposeInitial] = useState<{ hook: string; content: string } | null>(null);
+  const [optimizeTarget, setOptimizeTarget] = useState<Tweet | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [error, setError] = useState('');
@@ -207,6 +209,19 @@ export default function Home() {
     }
   };
 
+  const handleApplyHook = async (tweetId: number, newHook: string) => {
+    try {
+      await fetch(`/api/tweets/${tweetId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hook: newHook }),
+      });
+      await fetchTweets();
+    } catch {
+      // non-critical
+    }
+  };
+
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
@@ -305,6 +320,7 @@ export default function Home() {
         onPostNow={handlePostNow}
         onSchedule={(tweet) => setScheduleTarget(tweet)}
         onCancel={handleCancel}
+        onOptimize={(tweet) => setOptimizeTarget(tweet)}
         actionLoading={actionLoading}
       />
 
@@ -326,6 +342,13 @@ export default function Home() {
         <UploadModal
           onClose={() => setShowUpload(false)}
           onSuccess={fetchTweets}
+        />
+      )}
+      {optimizeTarget && (
+        <OptimizeModal
+          tweet={optimizeTarget}
+          onClose={() => setOptimizeTarget(null)}
+          onApplyHook={(newHook) => handleApplyHook(optimizeTarget.id, newHook)}
         />
       )}
       {showCompose && (

@@ -18,6 +18,7 @@ type Props = {
   onPostNow: (tweet: Tweet) => void;
   onSchedule: (tweet: Tweet) => void;
   onCancel: (tweet: Tweet) => void;
+  onOptimize: (tweet: Tweet) => void;
   actionLoading: number | null;
 };
 
@@ -34,6 +35,7 @@ export default function TweetGrid({
   onPostNow,
   onSchedule,
   onCancel,
+  onOptimize,
   actionLoading,
 }: Props) {
   const filtered = useMemo(() => {
@@ -113,6 +115,7 @@ export default function TweetGrid({
               onPostNow={onPostNow}
               onSchedule={onSchedule}
               onCancel={onCancel}
+              onOptimize={onOptimize}
               actionLoading={actionLoading === tweet.id}
             />
           ))}

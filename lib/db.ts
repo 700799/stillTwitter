@@ -313,6 +313,10 @@ export function markDigestEmailSent(date: string): void {
 
 // ── Tweet helpers ─────────────────────────────────────────────────────────────
 
+export function updateTweetHook(id: number, hook: string): void {
+  getDb().prepare('UPDATE tweets SET hook = ? WHERE id = ?').run(hook, id);
+}
+
 export function insertTweet(entry: typeof allTweetData[number]): number {
   const db = getDb();
   const result = db
