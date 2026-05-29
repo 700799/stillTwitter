@@ -10,6 +10,8 @@ type Props = {
   selectedAccountId: string;
   onClose: () => void;
   onSuccess: () => void;
+  initialHook?: string;
+  initialContent?: string;
 };
 
 function defaultDatetime(): string {
@@ -28,11 +30,11 @@ function minDatetime(): string {
 const charColor = (len: number) =>
   len > 280 ? 'text-red-400' : len > 240 ? 'text-yellow-400' : 'text-gray-500';
 
-export default function ComposeModal({ accounts, selectedAccountId, onClose, onSuccess }: Props) {
+export default function ComposeModal({ accounts, selectedAccountId, onClose, onSuccess, initialHook, initialContent }: Props) {
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
   const [category, setCategory] = useState('');
-  const [hook, setHook] = useState('');
-  const [parts, setParts] = useState(['']);
+  const [hook, setHook] = useState(initialHook ?? '');
+  const [parts, setParts] = useState(initialContent ? [initialContent] : ['']);
   const [action, setAction] = useState<'draft' | 'schedule' | 'post'>('schedule');
   const [scheduledAt, setScheduledAt] = useState(defaultDatetime);
   const [accountId, setAccountId] = useState(selectedAccountId || accounts[0]?.id || '');
