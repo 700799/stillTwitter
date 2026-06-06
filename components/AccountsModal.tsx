@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Drawer from './Drawer';
 
 type AccountMeta = { id: string; name: string };
 
@@ -67,13 +68,8 @@ export default function AccountsModal({ accounts, onClose, onRefresh }: Props) {
   );
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold">Twitter Accounts</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
-        </div>
-
+    <Drawer title="Twitter Accounts" onClose={onClose}>
+      <div className="p-5">
         {/* Current accounts */}
         {accounts.length > 0 && (
           <div className="mb-6 space-y-2">
@@ -131,6 +127,6 @@ export default function AccountsModal({ accounts, onClose, onRefresh }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </Drawer>
   );
 }

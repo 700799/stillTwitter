@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Tweet, OptimizeResult } from '@/types';
+import Drawer from './Drawer';
 
 type Props = {
   tweet: Tweet;
@@ -52,18 +53,9 @@ export default function OptimizeModal({ tweet, onClose, onApplyHook }: Props) {
   const scoreBorder = (s: number) => s >= 8 ? 'border-green-700 bg-green-950' : s >= 5 ? 'border-yellow-700 bg-yellow-950' : 'border-red-700 bg-red-950';
 
   return (
-    <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h2 className="text-xl font-bold text-white">AI Content Optimizer</h2>
-            <p className="text-gray-400 text-xs mt-0.5">{tweet.subject} · {tweet.category}</p>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl font-bold px-1 leading-none">×</button>
-        </div>
+    <Drawer title="AI Content Optimizer" onClose={onClose}>
+      <div className="p-5">
+        <p className="text-gray-400 text-xs mb-4">{tweet.subject} · {tweet.category}</p>
 
         {/* Current content preview */}
         <div className="bg-gray-800 rounded-lg p-3 mb-5">
@@ -168,6 +160,6 @@ export default function OptimizeModal({ tweet, onClose, onApplyHook }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </Drawer>
   );
 }

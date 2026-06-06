@@ -285,28 +285,6 @@ export default function Home() {
 
       <StatsBar stats={stats} onScheduledClick={() => setShowQueue((v) => !v)} />
 
-      {showDigest && digest && (
-        <DigestPanel
-          digest={digest}
-          onClose={() => setShowDigest(false)}
-          onTweetAbout={(article: DigestArticle) => {
-            setComposeInitial({ hook: article.title, content: article.link });
-            setShowCompose(true);
-          }}
-        />
-      )}
-
-      {showQueue && (
-        <ScheduledQueue
-          posts={queuePosts}
-          accounts={accounts}
-          onCancel={handleQueueCancel}
-          onRetry={handleQueueRetry}
-          onReschedule={handleQueueReschedule}
-          onClose={() => setShowQueue(false)}
-        />
-      )}
-
       <TweetGrid
         tweets={tweets}
         loading={loading}
@@ -359,6 +337,26 @@ export default function Home() {
           initialContent={composeInitial?.content}
           onClose={() => { setShowCompose(false); setComposeInitial(null); }}
           onSuccess={fetchTweets}
+        />
+      )}
+      {showDigest && digest && (
+        <DigestPanel
+          digest={digest}
+          onClose={() => setShowDigest(false)}
+          onTweetAbout={(article: DigestArticle) => {
+            setComposeInitial({ hook: article.title, content: article.link });
+            setShowCompose(true);
+          }}
+        />
+      )}
+      {showQueue && (
+        <ScheduledQueue
+          posts={queuePosts}
+          accounts={accounts}
+          onCancel={handleQueueCancel}
+          onRetry={handleQueueRetry}
+          onReschedule={handleQueueReschedule}
+          onClose={() => setShowQueue(false)}
         />
       )}
     </main>

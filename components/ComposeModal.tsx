@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { SUBJECTS } from '@/data/constants';
+import Drawer from './Drawer';
 
 type Account = { id: string; name: string };
 
@@ -95,16 +96,8 @@ export default function ComposeModal({ accounts, selectedAccountId, onClose, onS
   const actionLabel = action === 'draft' ? 'Save Draft' : action === 'schedule' ? 'Schedule Tweet' : 'Post Now';
 
   return (
-    <div
-      className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 p-4 overflow-y-auto"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-2xl w-full shadow-2xl my-8">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold">Compose Tweet</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl leading-none">×</button>
-        </div>
-
+    <Drawer title="Compose Tweet" onClose={onClose} width="lg">
+      <div className="p-5">
         {/* Subject + Category */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
@@ -256,6 +249,6 @@ export default function ComposeModal({ accounts, selectedAccountId, onClose, onS
           </button>
         </div>
       </div>
-    </div>
+    </Drawer>
   );
 }
