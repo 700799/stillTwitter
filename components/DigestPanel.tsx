@@ -1,6 +1,7 @@
 'use client';
 
 import type { DigestArticle, NewsDigest } from '@/types';
+import Drawer from './Drawer';
 
 type Props = {
   digest: NewsDigest;
@@ -19,25 +20,17 @@ function relativeTime(iso: string): string {
 }
 
 export default function DigestPanel({ digest, onClose, onTweetAbout }: Props) {
-  return (
-    <div className="bg-gray-900 border border-gray-700 rounded-2xl mb-8 overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
-        <div className="flex items-center gap-3">
-          <h2 className="text-white font-semibold text-base">Today&apos;s Digest</h2>
-          <span className="bg-blue-900 text-blue-300 text-xs px-2 py-0.5 rounded-full font-medium">
-            {digest.articles.length} articles
-          </span>
-          <span className="text-gray-500 text-xs">{digest.date}</span>
-        </div>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-white text-xl leading-none font-bold px-1"
-          aria-label="Close digest"
-        >
-          ×
-        </button>
-      </div>
+  const headerExtra = (
+    <>
+      <span className="bg-blue-900 text-blue-300 text-xs px-2 py-0.5 rounded-full font-medium">
+        {digest.articles.length} articles
+      </span>
+      <span className="text-gray-500 text-xs">{digest.date}</span>
+    </>
+  );
 
+  return (
+    <Drawer title="Today's Digest" onClose={onClose} headerExtra={headerExtra}>
       {digest.articles.length === 0 ? (
         <div className="px-5 py-8 text-center text-gray-500 text-sm">No articles in this digest.</div>
       ) : (
@@ -75,6 +68,6 @@ export default function DigestPanel({ digest, onClose, onTweetAbout }: Props) {
           ))}
         </div>
       )}
-    </div>
+    </Drawer>
   );
 }

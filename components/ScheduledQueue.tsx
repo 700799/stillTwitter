@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import ScheduleModal from './ScheduleModal';
+import Drawer from './Drawer';
 import type { ScheduledPost, Tweet } from '@/types';
 
 type Props = {
@@ -45,32 +46,24 @@ export default function ScheduledQueue({ posts, accounts, onCancel, onRetry, onR
   const pending = posts.filter((p) => p.status === 'pending');
   const failed = posts.filter((p) => p.status === 'failed');
 
+  const headerExtra = (
+    <>
+      {pending.length > 0 && (
+        <span className="bg-yellow-900 text-yellow-300 text-xs px-2 py-0.5 rounded-full font-medium">
+          {pending.length} pending
+        </span>
+      )}
+      {failed.length > 0 && (
+        <span className="bg-red-900 text-red-300 text-xs px-2 py-0.5 rounded-full font-medium">
+          {failed.length} failed
+        </span>
+      )}
+    </>
+  );
+
   return (
     <>
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl mb-8 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
-          <div className="flex items-center gap-3">
-            <h2 className="text-white font-semibold text-base">Scheduled Queue</h2>
-            {pending.length > 0 && (
-              <span className="bg-yellow-900 text-yellow-300 text-xs px-2 py-0.5 rounded-full font-medium">
-                {pending.length} pending
-              </span>
-            )}
-            {failed.length > 0 && (
-              <span className="bg-red-900 text-red-300 text-xs px-2 py-0.5 rounded-full font-medium">
-                {failed.length} failed
-              </span>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white text-xl leading-none font-bold px-1"
-            aria-label="Close queue"
-          >
-            ×
-          </button>
-        </div>
-
+      <Drawer title="Scheduled Queue" onClose={onClose} headerExtra={headerExtra}>
         {pending.length > 0 && (
           <div>
             {failed.length > 0 && (
@@ -157,7 +150,7 @@ export default function ScheduledQueue({ posts, accounts, onCancel, onRetry, onR
         {posts.length === 0 && (
           <div className="px-5 py-8 text-center text-gray-500 text-sm">No scheduled posts.</div>
         )}
-      </div>
+      </Drawer>
 
       {reschedulePost && (
         <ScheduleModal

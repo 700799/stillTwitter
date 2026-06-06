@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Drawer from './Drawer';
 
 type Props = {
   onClose: () => void;
@@ -65,13 +66,8 @@ export default function UploadModal({ onClose, onSuccess }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-lg w-full">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold">Upload Tweets (JSON)</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">×</button>
-        </div>
-
+    <Drawer title="Upload Tweets (JSON)" onClose={onClose}>
+      <div className="p-5">
         <div className="bg-gray-800 rounded-lg p-4 mb-5 text-xs text-gray-400 font-mono leading-relaxed">
           {`[
   {
@@ -161,6 +157,6 @@ export default function UploadModal({ onClose, onSuccess }: Props) {
           )}
         </div>
       </div>
-    </div>
+    </Drawer>
   );
 }
